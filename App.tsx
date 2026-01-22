@@ -63,7 +63,7 @@ const App: React.FC = () => {
   });
 
   const [estimatedData, setEstimatedData] = useState({
-    taxRate: 0.06,
+    taxRate: 0.06, // 默认维持 6%
     mixedSpecialRatio: 0.5
   });
 
@@ -124,7 +124,7 @@ const App: React.FC = () => {
     const newId = `custom_${Date.now()}`;
     setSettlementData(prev => ({
       ...prev,
-      deductions: [...prev.deductions, { id: newId, label: '新增核减项', type: 'fixed', value: 0, isActive: true, isCustom: true }]
+      deductions: [...prev.deductions, { id: newId, label: '新增扣除项', type: 'fixed', value: 0, isActive: true, isCustom: true }]
     }));
   };
 
@@ -166,8 +166,8 @@ const App: React.FC = () => {
                     <tbody className="divide-y divide-slate-100">
                       <tr><td className="py-6 text-slate-500 font-medium">结算申报总额</td><td className="py-6 text-right font-mono font-black text-lg">¥ {formatCurrency(settlementData.settlementAmount)}</td></tr>
                       <tr><td className="py-6 text-slate-500 font-medium">扣除项合计 (核减)</td><td className="py-6 text-right font-mono text-amber-600 font-black text-lg">- ¥ {formatCurrency(financials.totalDeductions)}</td></tr>
-                      <tr><td className="py-6 text-slate-500 font-medium">进项补差收益 (补偿)</td><td className="py-6 text-right font-mono text-emerald-600 font-black text-lg">+ ¥ {formatCurrency(financials.totalInputTaxDeduction)}</td></tr>
-                      <tr className="bg-slate-50 font-black"><td className="py-8 px-8 rounded-l-3xl text-lg">最终应付净额 (预估)</td><td className="py-8 px-8 text-right font-mono text-3xl text-indigo-700 rounded-r-3xl">¥ {formatCurrency(financials.netPayable)}</td></tr>
+                      <tr><td className="py-6 text-slate-500 font-medium">进项抵扣税额</td><td className="py-6 text-right font-mono text-emerald-600 font-black text-lg">+ ¥ {formatCurrency(financials.totalInputTaxDeduction)}</td></tr>
+                      <tr className="bg-slate-50 font-black"><td className="py-8 px-8 rounded-l-3xl text-lg">预计实际应付金额 (含进项抵扣)</td><td className="py-8 px-8 text-right font-mono text-3xl text-indigo-700 rounded-r-3xl">¥ {formatCurrency(financials.netPayable)}</td></tr>
                     </tbody>
                   </table>
                </section>
@@ -208,7 +208,7 @@ const App: React.FC = () => {
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
                     <h3 className="text-xl font-black text-slate-800 flex items-center gap-4">
-                        <span className="w-2 h-8 bg-indigo-600 rounded-full"></span> 本次结算申报金额
+                        <span className="w-2 h-8 bg-indigo-600 rounded-full"></span> 本次结算金额
                     </h3>
                     <p className="text-sm text-slate-400 font-medium ml-6">请输入本次需要进行结算的分包总金额</p>
                 </div>
@@ -228,9 +228,9 @@ const App: React.FC = () => {
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden p-10">
                <div className="flex items-center justify-between mb-10 pb-6 border-b border-slate-50">
                   <h3 className="text-xl font-black text-slate-800 flex items-center gap-4">
-                    <span className="w-2 h-8 bg-amber-500 rounded-full"></span> 财务扣除配置
+                    <span className="w-2 h-8 bg-amber-500 rounded-full"></span> 扣除配置
                   </h3>
-                  <button onClick={addDeduction} className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg">+ 新增核减项</button>
+                  <button onClick={addDeduction} className="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-indigo-600 transition-all shadow-lg">+ 新增扣除项</button>
                </div>
                
                <div className="space-y-4">
@@ -259,18 +259,18 @@ const App: React.FC = () => {
                <div className="mt-10 bg-amber-50/80 p-8 rounded-3xl border-2 border-amber-100 flex items-center justify-between shadow-inner">
                   <div className="space-y-1">
                     <span className="text-xs font-black text-amber-600 uppercase tracking-widest block">合计扣除金额 (已启用项目)</span>
-                    <p className="text-sm text-amber-500 font-medium">这些项目将从结算申报总额中扣除</p>
+                    <p className="text-sm text-amber-500 font-medium">这些项目将从结算总额中扣除</p>
                   </div>
                   <span className="text-3xl font-black font-mono text-amber-700">¥ {formatCurrency(financials.totalDeductions)}</span>
                </div>
             </div>
 
-            {/* 3. 税务测算区 - 优化模型展示 */}
+            {/* 3. 进项发票测算 - 优化模型展示 */}
             <div className="bg-white rounded-[2.5rem] border border-slate-200 shadow-sm overflow-hidden p-10">
                <div className="flex items-center justify-between mb-12 border-b border-slate-50 pb-8">
                   <div className="space-y-1">
                     <h3 className="text-xl font-black text-slate-800 flex items-center gap-4">
-                        <span className="w-2 h-8 bg-emerald-500 rounded-full"></span> 进项测算模型设定
+                        <span className="w-2 h-8 bg-emerald-500 rounded-full"></span> 进项发票测算
                     </h3>
                     <p className="text-sm text-slate-400 font-medium ml-6">基于票据类型自动计算进项补差收益</p>
                   </div>
@@ -286,19 +286,37 @@ const App: React.FC = () => {
                      <div className="space-y-4">
                         <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">测算适用税率模型</label>
                         <select className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl px-6 py-5 font-black text-lg outline-none cursor-pointer focus:bg-white focus:border-indigo-500 transition-all appearance-none" value={estimatedData.taxRate} onChange={(e) => setEstimatedData({...estimatedData, taxRate: Number(e.target.value)})}>
+                           <option value={0.01}>1.00% (小规模纳税人)</option>
+                           <option value={0.03}>3.00% (小规模纳税人)</option>
                            <option value={0.06}>6.00% (设计/技术服务)</option>
                            <option value={0.09}>9.00% (建筑/运输服务)</option>
                            <option value={0.13}>13.00% (设备/物资类)</option>
                         </select>
                      </div>
                      <div className="space-y-4">
-                        <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">测算补差收益 (+)</label>
+                        <label className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">进项抵扣税额</label>
                         <div className="bg-emerald-50/50 border-2 border-emerald-100 rounded-2xl px-8 py-5 flex items-center justify-between shadow-inner">
                            <span className="font-black text-emerald-600 font-mono text-3xl">¥ {formatCurrency(financials.totalInputTaxDeduction)}</span>
-                           <span className="text-[10px] bg-emerald-500 text-white px-2 py-1 rounded font-black tracking-widest">SYSTEM</span>
+                           <span className="text-[10px] bg-emerald-500 text-white px-3 py-1 rounded font-black tracking-widest">自动计算</span>
                         </div>
                      </div>
                   </div>
+
+                  {/* 全专票金额展示 */}
+                  {estimationScenario === 'special' && (
+                    <div className="bg-indigo-50/30 p-8 rounded-3xl border-2 border-indigo-100 space-y-3 animate-in fade-in duration-300">
+                       <span className="text-xs font-black text-indigo-400 uppercase tracking-widest">专票金额(价税合计)</span>
+                       <p className="text-3xl font-black font-mono text-indigo-600">¥ {formatCurrency(financials.specialAmt)}</p>
+                    </div>
+                  )}
+
+                  {/* 全普票金额展示 */}
+                  {estimationScenario === 'general' && (
+                    <div className="bg-slate-50/80 p-8 rounded-3xl border-2 border-slate-100 space-y-3 animate-in fade-in duration-300">
+                       <span className="text-xs font-black text-slate-400 uppercase tracking-widest">普票金额(价税合计)</span>
+                       <p className="text-3xl font-black font-mono text-slate-600">¥ {formatCurrency(financials.generalAmt)}</p>
+                    </div>
+                  )}
 
                   {estimationScenario === 'mixed' && (
                     <div className="bg-slate-50 p-10 rounded-[2rem] border-2 border-slate-100 space-y-8 animate-in fade-in slide-in-from-top-4 duration-300">
@@ -308,14 +326,14 @@ const App: React.FC = () => {
                        </div>
                        <div className="grid grid-cols-2 gap-10">
                           <div className="space-y-3">
-                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">专票对应结算额 (含税)</span>
+                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">专票金额(价税合计)</span>
                              <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-mono font-bold">¥</span>
                                 <input type="number" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-10 py-4 font-mono text-xl font-black outline-none focus:border-indigo-500 transition-all text-indigo-600" value={financials.specialAmt.toFixed(2)} onChange={(e) => handleMixedAmountChange('special', Number(e.target.value))} />
                              </div>
                           </div>
                           <div className="space-y-3">
-                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">普票对应结算额 (不含税)</span>
+                             <span className="text-xs font-black text-slate-400 uppercase tracking-widest">普票金额(价税合计)</span>
                              <div className="relative">
                                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 font-mono font-bold">¥</span>
                                 <input type="number" className="w-full bg-white border-2 border-slate-100 rounded-2xl px-10 py-4 font-mono text-xl font-black outline-none focus:border-indigo-500 transition-all text-slate-600" value={financials.generalAmt.toFixed(2)} onChange={(e) => handleMixedAmountChange('general', Number(e.target.value))} />
@@ -339,20 +357,20 @@ const App: React.FC = () => {
                       <span className="text-7xl font-black font-mono tracking-tighter">¥{formatCurrency(financials.netPayable).split('.')[0]}</span>
                       <span className="text-2xl font-bold text-slate-500 font-mono">.{formatCurrency(financials.netPayable).split('.')[1]}</span>
                    </div>
-                   <p className="text-sm text-slate-400 font-medium mt-4 border-l-2 border-indigo-600 pl-4 py-1">预计实际应付净额 <span className="text-white">(含进项补差)</span></p>
+                   <p className="text-sm text-slate-400 font-medium mt-4 border-l-2 border-indigo-600 pl-4 py-1">预计实际应付金额 (含进项抵扣)</p>
                 </div>
 
                 <div className="space-y-6 border-t border-white/10 pt-10 relative z-10">
                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500 font-black uppercase tracking-widest">基准应付金额</span>
+                      <span className="text-slate-500 font-black uppercase tracking-widest">结算金额-扣除金额</span>
                       <span className="font-mono font-black text-lg">¥ {formatCurrency(financials.basePayable)}</span>
                    </div>
                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500 font-black uppercase tracking-widest">累计核减明细</span>
+                      <span className="text-slate-500 font-black uppercase tracking-widest">扣除项金额合计</span>
                       <span className="font-mono font-black text-lg text-amber-500">- ¥ {formatCurrency(financials.totalDeductions)}</span>
                    </div>
                    <div className="flex justify-between items-center text-sm">
-                      <span className="text-slate-500 font-black uppercase tracking-widest">税务进项补差</span>
+                      <span className="text-slate-500 font-black uppercase tracking-widest">进项抵扣税额</span>
                       <span className="font-mono font-black text-lg text-emerald-400">+ ¥ {formatCurrency(financials.totalInputTaxDeduction)}</span>
                    </div>
                 </div>
@@ -361,21 +379,6 @@ const App: React.FC = () => {
                    <div className="bg-white/5 py-4 px-6 rounded-2xl inline-block">
                         <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">本测算基于预设财务逻辑，最终以财务系统入账为准</p>
                    </div>
-                </div>
-             </div>
-             
-             {/* 辅助操作区 */}
-             <div className="bg-white rounded-[2.5rem] border border-slate-200 p-8 space-y-6 shadow-sm">
-                <h4 className="text-sm font-black text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-4">快速导出</h4>
-                <div className="grid grid-cols-2 gap-4">
-                    <button className="flex flex-col items-center gap-3 p-6 bg-slate-50 rounded-3xl hover:bg-slate-100 transition-all border border-slate-100">
-                        <div className="p-3 bg-white rounded-xl shadow-sm"><Icons.Edit className="w-5 h-5 text-indigo-600" /></div>
-                        <span className="text-xs font-black text-slate-600">打印草案</span>
-                    </button>
-                    <button className="flex flex-col items-center gap-3 p-6 bg-slate-50 rounded-3xl hover:bg-slate-100 transition-all border border-slate-100">
-                        <div className="p-3 bg-white rounded-xl shadow-sm"><Icons.Check className="w-5 h-5 text-emerald-600" /></div>
-                        <span className="text-xs font-black text-slate-600">保存模板</span>
-                    </button>
                 </div>
              </div>
           </div>
