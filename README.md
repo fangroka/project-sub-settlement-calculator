@@ -20,4 +20,4 @@ View your app in AI Studio: https://ai.studio/apps/drive/174iwtL9E_iYwS2Yx3DSHBr
    `npm run dev`
 
 ## URL
-https://project-sub-settlement-calculator.netlify.app/
+https://netlify.app/
