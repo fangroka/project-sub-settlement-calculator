@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { 
   ProjectFinancials, 
@@ -99,6 +98,13 @@ const App: React.FC = () => {
     }));
   };
 
+  const removeDeduction = (id: string) => {
+    setSettlementData(prev => ({
+      ...prev,
+      deductions: prev.deductions.filter(d => d.id !== id)
+    }));
+  };
+
   const addDeduction = () => {
     const newId = `custom_${Date.now()}`;
     setSettlementData(prev => ({
@@ -155,43 +161,43 @@ const App: React.FC = () => {
                <div className="grid grid-cols-4 gap-4">
                   {[
                     { label: "本次结算金额", value: formatCurrency(settlementData.settlementAmount), color: "text-slate-900" },
-                    { label: "扣除项金额合计", value: `- ¥ ${formatCurrency(financials.totalDeductions)}`, color: "text-amber-600" },
-                    { label: "进项抵扣税额", value: `+ ¥ ${formatCurrency(financials.totalInputTaxDeduction)}`, color: "text-emerald-600" },
-                    { label: "最终应付金额", value: `¥ ${formatCurrency(financials.netPayable)}`, color: "text-white", bg: "bg-indigo-600 shadow-indigo-100" }
+                    { label: "扣除项金额合计", value: `- ${formatCurrency(financials.totalDeductions)}`, color: "text-amber-600" },
+                    { label: "进项抵扣税额", value: `+ ${formatCurrency(financials.totalInputTaxDeduction)}`, color: "text-emerald-600" },
+                    { label: "最终应付金额", value: formatCurrency(financials.netPayable), color: "text-white", bg: "bg-indigo-600 shadow-indigo-100" }
                   ].map((stat, i) => (
                     <div key={i} className={`${stat.bg || 'bg-slate-50'} p-5 rounded-2xl border ${stat.bg ? 'border-transparent shadow-lg' : 'border-slate-100'}`}>
-                      <p className={`text-[9px] font-black uppercase tracking-wider mb-1 ${stat.color === 'text-white' ? 'text-indigo-200' : 'text-slate-400'}`}>{stat.label}</p>
+                      <p className={`text-xs font-black uppercase tracking-wider mb-2 ${stat.color === 'text-white' ? 'text-indigo-200' : 'text-slate-500'}`}>{stat.label}</p>
                       <p className={`text-xl font-black font-mono tracking-tight ${stat.color}`}>{stat.value}</p>
                     </div>
                   ))}
                </div>
 
                <div className="space-y-4">
-                  <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                    <div className="w-1 h-5 bg-slate-900 rounded-full"></div> 扣除项明细
+                  <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                    <div className="w-1.5 h-6 bg-slate-900 rounded-full"></div> 扣除项明细
                   </h3>
                   <div className="border border-slate-200 rounded-2xl overflow-hidden">
-                     <table className="w-full text-[11px]">
+                     <table className="w-full text-sm">
                         <thead className="bg-slate-50 border-b border-slate-200">
-                           <tr className="text-slate-500 font-bold uppercase tracking-wider">
-                              <th className="px-6 py-3 text-left">扣除项</th>
-                              <th className="px-6 py-3 text-center">模式</th>
-                              <th className="px-6 py-3 text-center">基准/数值</th>
-                              <th className="px-6 py-3 text-right">核减金额</th>
+                           <tr className="text-slate-500 font-bold uppercase tracking-wider text-xs">
+                              <th className="px-6 py-4 text-left">扣除项</th>
+                              <th className="px-6 py-4 text-center">模式</th>
+                              <th className="px-6 py-4 text-center">基准/数值</th>
+                              <th className="px-6 py-4 text-right">核减金额</th>
                            </tr>
                         </thead>
                         <tbody className="divide-y divide-slate-100">
                            {settlementData.deductions.filter(d => d.isActive).map(item => (
                               <tr key={item.id}>
-                                 <td className="px-6 py-3 font-bold text-slate-800">{item.label}</td>
-                                 <td className="px-6 py-3 text-center text-slate-500">{item.type === 'rate' ? '比例' : '金额'}</td>
-                                 <td className="px-6 py-3 text-center font-mono">{item.type === 'rate' ? `${(item.value * 100).toFixed(1)}%` : `¥${formatCurrency(item.value)}`}</td>
-                                 <td className="px-6 py-3 text-right font-black font-mono">¥ {formatCurrency(item.type === 'rate' ? settlementData.settlementAmount * item.value : item.value)}</td>
+                                 <td className="px-6 py-4 font-bold text-slate-800 text-sm">{item.label}</td>
+                                 <td className="px-6 py-4 text-center text-slate-500 text-xs">{item.type === 'rate' ? '比例' : '金额'}</td>
+                                 <td className="px-6 py-4 text-center font-mono text-lg">{item.type === 'rate' ? `${(item.value * 100).toFixed(1)}%` : formatCurrency(item.value)}</td>
+                                 <td className="px-6 py-4 text-right font-black font-mono text-lg text-slate-900">{formatCurrency(item.type === 'rate' ? settlementData.settlementAmount * item.value : item.value)}</td>
                               </tr>
                            ))}
                            <tr className="bg-slate-50/50">
-                              <td colSpan={3} className="px-6 py-4 text-right font-black text-slate-400 uppercase text-[9px]">合计</td>
-                              <td className="px-6 py-4 text-right font-mono font-black text-amber-600 text-base">¥ {formatCurrency(financials.totalDeductions)}</td>
+                              <td colSpan={3} className="px-6 py-5 text-left font-black text-slate-900 uppercase text-sm tracking-wider">扣除项金额合计</td>
+                              <td className="px-6 py-5 text-right font-mono font-black text-amber-600 text-xl">{formatCurrency(financials.totalDeductions)}</td>
                            </tr>
                         </tbody>
                      </table>
@@ -200,40 +206,41 @@ const App: React.FC = () => {
 
                <div className="grid grid-cols-1 gap-8">
                   <div className="space-y-4">
-                    <h3 className="text-base font-black text-slate-900 flex items-center gap-2">
-                       <div className="w-1 h-5 bg-indigo-500 rounded-full"></div> 进项发票测算
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-2">
+                       <div className="w-1.5 h-6 bg-indigo-500 rounded-full"></div> 进项发票测算
                     </h3>
-                    <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-6 space-y-4">
-                       <div className="flex justify-between items-center text-[10px]">
-                          <span className="font-bold text-slate-400 uppercase">测算模型</span>
+                    <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-8 space-y-5">
+                       <div className="flex justify-between items-center text-sm">
+                          <span className="font-bold text-slate-500 uppercase tracking-wide">测算模型</span>
                           <span className="font-black text-indigo-600">{estimationScenario === 'special' ? '全专票' : estimationScenario === 'general' ? '全普票' : '混合票据'}</span>
                        </div>
-                       <div className="flex justify-between items-center text-[10px]">
-                          <span className="font-bold text-slate-400 uppercase">设定税率</span>
-                          <span className="font-black text-slate-900 font-mono">{(estimatedData.taxRate * 100).toFixed(1)}%</span>
+                       <div className="flex justify-between items-center text-sm">
+                          <span className="font-bold text-slate-500 uppercase tracking-wide">设定税率</span>
+                          <span className="font-black text-slate-900 font-mono text-lg">{(estimatedData.taxRate * 100).toFixed(1)}%</span>
                        </div>
-                       <div className="flex justify-between items-center text-[10px]">
-                          <span className="font-bold text-slate-400 uppercase">专票金额(价税合计)</span>
-                          <span className="font-black text-slate-900 font-mono">¥ {formatCurrency(financials.specialAmt)}</span>
+                       <div className="flex justify-between items-center text-sm">
+                          <span className="font-bold text-slate-500 uppercase tracking-wide">专票金额(价税合计)</span>
+                          <span className="font-black text-slate-900 font-mono text-lg">{formatCurrency(financials.specialAmt)}</span>
                        </div>
-                       <div className="flex justify-between items-center text-[10px]">
-                          <span className="font-bold text-slate-400 uppercase">普票金额(价税合计)</span>
-                          <span className="font-black text-slate-900 font-mono">¥ {formatCurrency(financials.generalAmt)}</span>
+                       <div className="flex justify-between items-center text-sm">
+                          <span className="font-bold text-slate-500 uppercase tracking-wide">普票金额(价税合计)</span>
+                          <span className="font-black text-slate-900 font-mono text-lg">{formatCurrency(financials.generalAmt)}</span>
                        </div>
-                       <div className="flex justify-between items-center text-[10px]">
-                          <span className="font-bold text-slate-400 uppercase">发票金额合计(价税合计)</span>
-                          <span className="font-black text-slate-900 font-mono">¥ {formatCurrency(financials.specialAmt + financials.generalAmt)}</span>
+                       <div className="flex justify-between items-center text-sm">
+                          <span className="font-bold text-slate-500 uppercase tracking-wide">发票金额合计(价税合计)</span>
+                          <span className="font-black text-slate-900 font-mono text-lg">{formatCurrency(financials.specialAmt + financials.generalAmt)}</span>
                        </div>
-                       <div className="pt-3 border-t border-slate-200 flex justify-between items-center">
-                          <span className="text-xs font-black text-slate-900">进项抵扣税额</span>
-                          <span className="text-lg font-black font-mono text-emerald-600">+ ¥ {formatCurrency(financials.totalInputTaxDeduction)}</span>
+                       <div className="pt-5 border-t border-slate-200 flex justify-between items-center">
+                          <span className="text-sm font-black text-slate-900 uppercase tracking-wider">进项抵扣税额</span>
+                          <span className="text-xl font-black font-mono text-emerald-600">{formatCurrency(financials.totalInputTaxDeduction)}</span>
                        </div>
                     </div>
                   </div>
                </div>
 
-               <div className="pt-8 border-t border-slate-100 flex justify-between items-center text-[9px] text-slate-400 font-bold uppercase tracking-widest">
-                  <p>报表生成：{getCurrentTime()}</p>
+               <div className="pt-10 border-t border-slate-100 flex justify-between items-center text-xs text-slate-400 font-bold uppercase tracking-widest">
+                  <p>报告生成时间：{getCurrentTime()}</p>
+                  <p>报告校验码：{Math.random().toString(36).substring(2, 10).toUpperCase()}</p>
                </div>
             </div>
          </main>
@@ -292,7 +299,7 @@ const App: React.FC = () => {
                   <h3 className="text-xl font-black text-slate-800 flex items-center gap-3">
                     <div className="w-1.5 h-7 bg-amber-500 rounded-full"></div> 扣除配置
                   </h3>
-                  <button onClick={addDeduction} className="bg-slate-100 text-slate-600 px-5 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 transition-all active:scale-95 flex items-center gap-2">
+                  <button onClick={addDeduction} className="bg-indigo-600 text-white px-5 py-2.5 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-500/20 active:scale-95 flex items-center gap-2">
                     <Icons.Edit className="w-3.5 h-3.5" /> 新增扣除项
                   </button>
                </div>
@@ -343,6 +350,14 @@ const App: React.FC = () => {
                             ¥ {formatCurrency(item.isActive ? (item.type === 'rate' ? settlementData.settlementAmount * item.value : item.value) : 0)}
                           </p>
                         </div>
+                        {/* 删除按钮 */}
+                        <button 
+                          onClick={() => removeDeduction(item.id)}
+                          className="p-2 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all active:scale-90"
+                          title="删除扣除项"
+                        >
+                          <Icons.Trash className="w-5 h-5" />
+                        </button>
                       </div>
                     </div>
                   ))}
